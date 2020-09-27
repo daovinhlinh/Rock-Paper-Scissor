@@ -1,46 +1,14 @@
 import * as React from "react";
-import { useState, useEffect } from "react";
-import {
-    Text,
-    View,
-    StyleSheet,
-    TouchableOpacity,
-    Dimensions,
-    Image,
-} from "react-native";
-
-// You can import from local files
-
-import Weapon from "./Weapon";
-
-// or any pure javascript modules available in npm
+import { useState, useLayoutEffect, useRef, useEffect } from "react";
+import { Text, View, StyleSheet, Dimensions } from "react-native";
 
 const { width, height } = Dimensions.get("window");
 
-const UserCard = ({ player, choice }) => {
-    return (
-        <View style={styles.user}>
-            <Text
-                style={{
-                    color: "#000",
-                    fontWeight: "bold",
-                    fontSize: 20,
-                }}
-            >
-                {player}
-            </Text>
-            <Image
-                source={{
-                    uri:
-                        choice.img ||
-                        "https://cdn.connox.com/m/100030/147203/media/Magis/Tempo/Tempo-schwarz.jpg",
-                }}
-                style={styles.image}
-            />
-            <Text>{choice.title || "Waiting for player"}</Text>
-        </View>
-    );
-};
+import UserCard from "./components/UserCard";
+import Choice from "./components/Choice";
+import History from "./components/History";
+
+const history1 = [];
 
 export default function App() {
     const [weapon, setWeapon] = useState([
@@ -63,26 +31,102 @@ export default function App() {
 
     const [userWeapon, setUserWeapon] = useState([]);
     const [compWeapon, setCompWeapon] = useState([]);
+    const [result, setResult] = useState("Welcome To Game");
+    const [count, setCount] = useState(0);
+    const [history, setHistory] = useState(history1);
+    const [didClickButton, setDidClickButton] = useState(false);
+    const firstUpdate = useRef(true);
+
+    const handleResult = (user, comp) => {
+        let getResult = "";
+        if (user === "Rock") {
+            getResult = comp === "Scissor" ? "Victory" : "Defeat";
+        }
+        if (user === "Paper") {
+            getResult = comp === "Rock" ? "Victory" : "Defeat";
+        }
+        if (user === "Scissor") {
+            getResult = comp === "Paper" ? "Victory" : "Defeat";
+        }
+        if (user === comp) getResult = "Tie";
+        setResult(getResult);
+        setCount(count + 1);
+    };
+
+    const getResultColor = () => {
+        if (result === "Victory") {
+            return "#07da63";
+        } else if (result === "Defeat") {
+            return "#b53737";
+        } else {
+            return "gray";
+        }
+    };
+
+    const input = useRef(null);
 
     useEffect(() => {
-        const random = (Math.random() * 2).toFixed(0);
-        setCompWeapon(weapon[random]);
-    }, [userWeapon]);
+        if (firstUpdate.current) {
+            firstUpdate.current = false;
+            return;
+        }
+        if (didClickButton) {
+            const random = (Math.random() * 2).toFixed(0);
+            setCompWeapon(weapon[random]);
+            setDidClickButton(false);
+        }
+
+        handleResult(userWeapon.title, compWeapon.title);
+        if (result === "Victory") {
+            // setHistory([...history], { res: "W" });
+            history1.push("W");
+            console.log(result);
+        } else if (result === "Defeat") {
+            // setHistory([...history], { res: "L" });
+            history1.push("L");
+            console.log(result);
+        } else {
+            // setHistory([...history], { res: "T" });
+            history1.push("T");
+            console.log(result);
+        }
+    }, [didClickButton]);
     return (
         <View style={styles.container}>
+            <Text
+                style={{
+                    fontWeight: "bold",
+                    fontSize: 40,
+                    color: getResultColor(),
+                }}
+                ref={input}
+            >
+                {result}
+            </Text>
             <View style={styles.gamePrompt}>
-                <UserCard player="User" choice={userWeapon} />
-                <UserCard player="Comp" choice={compWeapon} />
+                <Text>Total game: {count}</Text>
+                <View style={styles.userWrapper}>
+                    <UserCard player="User" choice={userWeapon} />
+                    <UserCard player="Comp" choice={compWeapon} />
+                </View>
+                <View style={styles.historyWrapper}>
+                    {/* {history.map((item) => {
+                        <History title={item.res} />;
+                    })} */}
+                </View>
             </View>
             <View style={{ alignItems: "center" }}>
-                <Text>Choose your weapon</Text>
+                <Text onPress={() => console.log(history1, result)}>
+                    Choose your weapon
+                </Text>
                 {weapon.map((item) => {
                     return (
-                        <Weapon
+                        <Choice
                             key={item.title}
                             title={item.title}
                             handleClick={() => {
                                 setUserWeapon(item);
+                                setDidClickButton(true);
                             }}
                         />
                     );
@@ -101,29 +145,28 @@ const styles = StyleSheet.create({
         paddingTop: 50,
         backgroundColor: "#f5f5f5",
     },
-    buttonWrapper: {
-        alignItems: "center",
-    },
     gamePrompt: {
-        width: width * 0.8,
-        height: 400,
+        width: width * 0.9,
+        height: 320,
         backgroundColor: "#fff",
+        marginTop: 30,
         marginBottom: 20,
         borderWidth: 1,
         borderColor: "#000",
-        flexDirection: "row",
+        flexDirection: "column",
         justifyContent: "space-between",
         alignItems: "center",
+        shadowColor: "black",
+        shadowRadius: 20,
     },
-    user: {
+    historyWrapper: {
+        flexDirection: "row",
+        justifyContent: "space-around",
         alignItems: "center",
-        width: width * 0.4,
-        height: 250,
-        marginTop: 80,
+        padding: 10,
     },
-    image: {
-        width: 80,
-        height: 80,
-        marginTop: 30,
+    userWrapper: {
+        flexDirection: "row",
+        justifyContent: "center",
     },
 });

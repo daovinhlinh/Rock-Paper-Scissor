@@ -1,13 +1,14 @@
 import React from "react";
+import { Text, View, StyleSheet, TouchableOpacity } from "react-native";
 
-import { Text, TouchableOpacity, StyleSheet, View } from "react-native";
-
-export default function Weapon(props) {
+const Choice = (props) => {
     return (
         <View>
             <TouchableOpacity
                 style={styles.button}
-                onPress={() => props.handleClick(props.name)}
+                onPress={() => {
+                    props.handleClick(props.name);
+                }}
             >
                 <Text
                     style={{ color: "#fff", fontWeight: "bold", fontSize: 20 }}
@@ -17,7 +18,9 @@ export default function Weapon(props) {
             </TouchableOpacity>
         </View>
     );
-}
+};
+
+export default Choice;
 
 const styles = StyleSheet.create({
     button: {
