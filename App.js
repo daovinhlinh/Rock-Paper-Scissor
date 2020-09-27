@@ -1,122 +1,139 @@
-import * as React from "react";
-import { useState, useLayoutEffect, useRef, useEffect } from "react";
-import { Text, View, StyleSheet, Dimensions } from "react-native";
-
-const { width, height } = Dimensions.get("window");
+import React from "react";
+import { useState } from "react";
+import { Text, View, Image, Dimensions, ImageBackground } from "react-native";
 
 import UserCard from "./components/UserCard";
 import Choice from "./components/Choice";
 import History from "./components/History";
+import styles from "./styles/App.style";
 
-const history1 = [];
+const matchHistory = [];
 
 export default function App() {
     const [weapon, setWeapon] = useState([
         {
             title: "Rock",
             img:
-                "https://images.homedepot-static.com/productImages/94af8836-0338-4802-914e-04cc71e562ad/svn/backyard-x-scapes-fake-rocks-hdd-rof-rocsb-64_1000.jpg",
+                "https://www.pngitem.com/pimgs/m/212-2122744_rock-paper-scissors-clipart-png-download-rock-paper.png",
         },
         {
             title: "Paper",
             img:
-                "https://image.shutterstock.com/image-vector/papers-cartoon-vector-illustration-black-260nw-547625740.jpg",
+                "https://www.pngitem.com/pimgs/m/266-2667252_transparent-rock-paper-scissors-clipart-rock-paper-scissors.png",
         },
         {
             title: "Scissor",
             img:
-                "https://homedepot.scene7.com/is/image/homedepotcanada/p_1001552153.jpg ",
+                "https://www.kindpng.com/picc/m/502-5025731_scissors-clipart-png-download-rock-paper-scissors-clipart.png",
         },
     ]);
 
     const [userWeapon, setUserWeapon] = useState([]);
     const [compWeapon, setCompWeapon] = useState([]);
-    const [result, setResult] = useState("Welcome To Game");
-    const [count, setCount] = useState(0);
-    const [history, setHistory] = useState(history1);
-    const [didClickButton, setDidClickButton] = useState(false);
-    const firstUpdate = useRef(true);
+    const [winCount, setWinCount] = useState(0);
+    const [loseCount, setLoseCount] = useState(0);
+    const [result, setResult] = useState();
+    const [gameCount, setGameCount] = useState(0);
 
-    const handleResult = (user, comp) => {
-        let getResult = "";
-        if (user === "Rock") {
-            getResult = comp === "Scissor" ? "Victory" : "Defeat";
-        }
-        if (user === "Paper") {
-            getResult = comp === "Rock" ? "Victory" : "Defeat";
-        }
-        if (user === "Scissor") {
-            getResult = comp === "Paper" ? "Victory" : "Defeat";
-        }
-        if (user === comp) getResult = "Tie";
-        setResult(getResult);
-        setCount(count + 1);
-    };
-
-    const getResultColor = () => {
-        if (result === "Victory") {
+    const getResultColor = (result) => {
+        if (result === "Win") {
             return "#07da63";
-        } else if (result === "Defeat") {
+        } else if (result === "Lose") {
             return "#b53737";
         } else {
             return "gray";
         }
     };
 
-    const input = useRef(null);
-
-    useEffect(() => {
-        if (firstUpdate.current) {
-            firstUpdate.current = false;
-            return;
+    const getRoundOutcome = (userChoice) => {
+        const random = Math.floor(Math.random() * 3);
+        const compChoice = weapon[random];
+        let result = "";
+        if (userChoice.title === "Rock") {
+            result = compChoice.title === "Scissor" ? "Win" : "Lose";
         }
-        if (didClickButton) {
-            const random = (Math.random() * 2).toFixed(0);
-            setCompWeapon(weapon[random]);
-            setDidClickButton(false);
+        if (userChoice.title === "Paper") {
+            result = compChoice.title === "Rock" ? "Win" : "Lose";
         }
+        if (userChoice.title === "Scissor") {
+            result = compChoice.title === "Paper" ? "Win" : "Lose";
+        }
+        if (userChoice.title === compChoice.title) result = "Tie";
+        return [result, compChoice];
+    };
 
-        handleResult(userWeapon.title, compWeapon.title);
-        if (result === "Victory") {
-            // setHistory([...history], { res: "W" });
-            history1.push("W");
-            console.log(result);
-        } else if (result === "Defeat") {
-            // setHistory([...history], { res: "L" });
-            history1.push("L");
-            console.log(result);
+    const onPress = (userChoice) => {
+        const [choiceResult, compChoice] = getRoundOutcome(userChoice);
+        const newUserChoice = weapon.find(
+            (item) => item.title === userChoice.title
+        );
+        const newCompChoice = weapon.find(
+            (item) => item.title === compChoice.title
+        );
+        setResult(choiceResult);
+        setUserWeapon(newUserChoice);
+        setCompWeapon(newCompChoice);
+        setGameCount(gameCount + 1);
+        if (choiceResult === "Win") setWinCount(winCount + 1);
+        if (choiceResult === "Lose") setLoseCount(loseCount + 1);
+        if (matchHistory.length < 10) {
+            matchHistory.push({
+                result: choiceResult.charAt(0),
+                color: getResultColor(choiceResult),
+            });
         } else {
-            // setHistory([...history], { res: "T" });
-            history1.push("T");
-            console.log(result);
+            matchHistory.shift();
+            matchHistory.push({
+                result: choiceResult.charAt(0),
+                color: getResultColor(choiceResult),
+            });
         }
-    }, [didClickButton]);
+    };
+
+    const getWinRate = () => {
+        return Math.floor((winCount / gameCount) * 100);
+    };
+
     return (
-        <View style={styles.container}>
-            <Text
-                style={{
-                    fontWeight: "bold",
-                    fontSize: 40,
-                    color: getResultColor(),
-                }}
-                ref={input}
-            >
-                {result}
+        <ImageBackground
+            source={{
+                uri:
+                    "https://previews.123rf.com/images/azaman357/azaman3571702/azaman357170200001/70959068-comic-book-versus-background-two-heroes-battle-action-intro-halftone-texture.jpg",
+            }}
+            resizeMode="stretch"
+            style={styles.container}
+        >
+            <Text style={[styles.result, { color: getResultColor(result) }]}>
+                {result || "Welcome To Game"}
             </Text>
             <View style={styles.gamePrompt}>
-                <Text>Total game: {count}</Text>
+                <Text style={styles.gameCount}>Total game: {gameCount}</Text>
+                <Text style={styles.winRate}>
+                    Win: {winCount} Lose: {loseCount} Tie:{" "}
+                    {gameCount - winCount - loseCount}
+                </Text>
+                <Text style={styles.winRate}>
+                    Winrate: {getWinRate() || "0"}%
+                </Text>
                 <View style={styles.userWrapper}>
                     <UserCard player="User" choice={userWeapon} />
                     <UserCard player="Comp" choice={compWeapon} />
                 </View>
                 <View style={styles.historyWrapper}>
-                    {/* {history.map((item) => {
-                        <History title={item.res} />;
-                    })} */}
+                    {matchHistory.map((item, index) => {
+                        const { result, color } = item;
+                        return (
+                            <History
+                                key={index}
+                                background={color}
+                                title={result}
+                            />
+                        );
+                    })}
                 </View>
             </View>
             <View style={{ alignItems: "center" }}>
-                <Text onPress={() => console.log(history1, result)}>
+                <Text style={{ fontSize: 18, fontWeight: "bold" }}>
                     Choose your weapon
                 </Text>
                 {weapon.map((item) => {
@@ -125,48 +142,12 @@ export default function App() {
                             key={item.title}
                             title={item.title}
                             handleClick={() => {
-                                setUserWeapon(item);
-                                setDidClickButton(true);
+                                onPress(item);
                             }}
                         />
                     );
                 })}
             </View>
-        </View>
+        </ImageBackground>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: "flex-start",
-        alignItems: "center",
-        padding: 8,
-        paddingTop: 50,
-        backgroundColor: "#f5f5f5",
-    },
-    gamePrompt: {
-        width: width * 0.9,
-        height: 320,
-        backgroundColor: "#fff",
-        marginTop: 30,
-        marginBottom: 20,
-        borderWidth: 1,
-        borderColor: "#000",
-        flexDirection: "column",
-        justifyContent: "space-between",
-        alignItems: "center",
-        shadowColor: "black",
-        shadowRadius: 20,
-    },
-    historyWrapper: {
-        flexDirection: "row",
-        justifyContent: "space-around",
-        alignItems: "center",
-        padding: 10,
-    },
-    userWrapper: {
-        flexDirection: "row",
-        justifyContent: "center",
-    },
-});

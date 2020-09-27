@@ -3,24 +3,19 @@ import { Text, View, Image, StyleSheet, Dimensions } from "react-native";
 
 const { width, height } = Dimensions.get("window");
 
+import styles from "../styles/UserCard.style";
+
 const UserCard = ({ player, choice }) => {
     return (
-        <View style={styles.user}>
-            <Text
-                style={{
-                    color: "#000",
-                    fontWeight: "bold",
-                    fontSize: 20,
-                }}
-            >
-                {player}
-            </Text>
+        <View style={styles.container}>
+            <Text style={styles.playerName}>{player}</Text>
             <Image
                 source={{
                     uri:
                         choice.img ||
-                        "https://cdn.connox.com/m/100030/147203/media/Magis/Tempo/Tempo-schwarz.jpg",
+                        "https://www.kindpng.com/picc/m/420-4206527_waiting-for-delivery-waiting-for-delivery-icon-hd.png",
                 }}
+                resizeMode="center"
                 style={styles.image}
             />
             <Text>{choice.title || "Waiting for player"}</Text>
@@ -29,19 +24,3 @@ const UserCard = ({ player, choice }) => {
 };
 
 export default UserCard;
-
-const styles = StyleSheet.create({
-    user: {
-        alignItems: "center",
-        justifyContent: "center",
-        width: width * 0.4,
-        height: 200,
-        marginTop: 30,
-    },
-    image: {
-        width: 80,
-        height: 80,
-        marginTop: 30,
-        backgroundColor: "#fff",
-    },
-});
